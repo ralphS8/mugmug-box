@@ -22,7 +22,7 @@
   #c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
   #c:active { cursor: grabbing; }
 
-  .controls { position: absolute; left: 16px; right: 16px; bottom: 18px; display: grid; justify-items: center; gap: 10px; pointer-events: none; }
+  .controls { position: absolute; left: 16px; right: 16px; bottom: 32px; display: grid; justify-items: center; gap: 10px; pointer-events: none; }
   .caption { margin: 0; font-size: 12px; font-weight: 500; letter-spacing: -0.01em; color: var(--label-2); transition: opacity 0.3s; }
 
   .dock {
@@ -62,7 +62,7 @@
   .icon[aria-pressed="true"] { color: var(--label); background: var(--fill); }
 
   @media (max-width: 480px) {
-    .controls { left: 10px; right: 10px; bottom: 10px; gap: 6px; }
+    .controls { left: 10px; right: 10px; bottom: 18px; gap: 6px; }
     .dock { gap: 8px; padding: 4px 4px 4px 4px; }
     .seg button { padding: 6px 10px; font-size: 12px; }
     .icon { width: 30px; height: 30px; }
@@ -71,7 +71,7 @@
     .caption { font-size: 11px; }
   }
   @media (max-height: 280px) {
-    .controls { bottom: 8px; }
+    .controls { bottom: 14px; }
     .caption { display: none; }
   }
   @media (prefers-reduced-motion: reduce) { .seg::before, .caption { transition: none; } }
@@ -274,7 +274,7 @@ const btnBox = document.getElementById('btnBox');
 const btnSpin = document.getElementById('btnSpin');
 const btnReset = document.getElementById('btnReset');
 
-let fold = reduceMotion ? 1 : 0;
+let fold = 1;
 let tween = null;
 let needsFrame = true;
 
@@ -327,7 +327,7 @@ function resize() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   // Shift the picture up by half the bar's height so the box sits centred in the open area
-  const reserve = Math.min(h * 0.45, controlsEl.offsetHeight + 18);
+  const reserve = Math.min(h * 0.45, controlsEl.offsetHeight + (parseFloat(getComputedStyle(controlsEl).bottom) || 0) + 6);
   usable = (h - reserve) / h;
   camera.setViewOffset(w, h, 0, reserve / 2, w, h);
   camera.updateProjectionMatrix();
@@ -347,16 +347,6 @@ resize();
 resetView();
 setSpin(spin);
 setFold(fold);
-
-// Play the fold when the box first scrolls into view (matters when embedded further down a page)
-if (!reduceMotion) {
-  let played = false;
-  const play = () => { if (!played) { played = true; setTimeout(() => animateTo(1), 500); } };
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { play(); io.disconnect(); } }, { threshold: 0.4 });
-    io.observe(app);
-  } else play();
-}
 
 // Scroll-to-zoom only after the viewer clicks the model, so page scrolling isn't hijacked
 controls.enableZoom = false;
